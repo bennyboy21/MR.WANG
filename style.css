@@ -1,0 +1,53 @@
+@property --pgPercentage {
+    syntax: '<number>';
+    inherits: false;
+    initial-value: 0;
+}
+
+@keyframes growProgressBar {
+    0%, 33% { --pgPercentage: 0; }
+    100% { --pgPercentage: var(--value); }
+}
+
+div[role="progressbar"] {
+    --size: 100px;
+    --fg:rgb(60, 60, 60);
+    --bg: rgb(220, 220, 220);
+    --pgPercentage: var(--value);
+    animation: growProgressBar 3s 1 forwards 3s;
+    width: var(--size);
+    height: var(--size);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: radial-gradient(closest-side, rgb(240, 240, 240) 80%, transparent 0 99.9%, rgb(240, 240, 240) 0),conic-gradient(var(--fg) calc(var(--pgPercentage) * 1%), var(--bg) 0);
+    font-size: calc(var(--size) / 5);
+    color:rgb(60, 60, 60);
+    font-size: 20px;
+    font-weight: 700;
+    position:absolute;
+    top:20px;
+    right:15px;
+}
+
+div[role="progressbar"]::before {
+    counter-reset: percentage var(--value);
+    content: counter(percentage) '%';
+    margin-top: 10px;
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%, -50%);
+    font-size: 15px;
+    font-weight: 900;
+}
+
+#number-Fraction {
+    font-size: 20px;
+    font-weight: 900;
+    margin-top: -10px;
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%, -50%);
+}

@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.21.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.21.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.21.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.21.0/firebase-storage.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <script src="../list.js"></script>
+    <script src="portal.js" defer></script>
+    <title>Mr. Wangs Private Portal</title>
+</head>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap');
+
+    body {
+        background:white;
+        margin:0;
+        padding:0;
+        font-family: 'Quicksand', sans-serif;
+        user-select: none;
+    }
+
+    @media (max-width:999px) {
+        #progress-Container {
+            height:120px;
+            width:calc(100vw - 355px);
+            position:fixed;
+            left:300px;
+            top:25px;
+            background:rgb(245, 245, 245);
+            border-radius:15px;
+            padding:15px;
+            min-width: 190px;
+            z-index: 5;
+        }
+
+        #lists {
+            overflow: hidden;
+            width:calc(100vw - 325px);
+            height:fit-content;
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap:5px;
+            position:absolute;
+            top:180px;
+            left:300px;
+            padding-bottom: 25px;
+        }
+
+        #current-Student-Selected {
+            height:calc(100vh - 190px);
+            width:240px;
+            position:fixed;
+            left:25px;
+            bottom:25px;
+            background:rgb(245, 245, 245);
+            border-radius:15px;
+            padding:15px;
+        }
+        
+        #add-Student-Button {
+            text-align: center;
+            font-weight: 900;
+            height:20px;
+            width:240px;
+            position:fixed;
+            left:25px;
+            top:80px;
+            background:rgb(245, 245, 245);
+            border-radius:15px;
+            padding:15px;
+            min-width: 190px;
+            color:rgb(60, 60, 60);
+            transition: .5s;
+        }
+
+        #add-Student-Button:hover {
+            cursor: pointer;
+            background: rgb(200, 200, 200);
+            transition: .5s;
+        }
+
+        #code-Student-Button {
+            text-align: center;
+            font-weight: 900;
+            height:20px;
+            width:240px;
+            position:fixed;
+            left:25px;
+            top:25px;
+            background:rgb(245, 245, 245);
+            border-radius:15px;
+            padding:15px;
+            min-width: 190px;
+            color:rgb(60, 60, 60);
+            transition: .5s;
+        }
+
+        #code-Student-Button:hover {
+            cursor: pointer;
+            background: rgb(200, 200, 200);
+            transition: .5s;
+        }
+
+        #top-Hide {
+            width:calc(100vw - 265px);
+            height:15px;
+            background:linear-gradient(to bottom, white, transparent);
+            position:fixed;
+            top:180px;
+            left:300px;
+            z-index: 5;
+        }
+
+        #bottom-Hide {
+            width:100vw;
+            height:25px;
+            background:linear-gradient(to top, white, transparent);
+            position:fixed;
+            bottom:0px;
+            z-index: 5;
+            left:0px;
+        }
+
+        #cover {
+            width:calc(100vw - 265px);
+            height:180px;
+            background:white;
+            position:fixed;
+            top:0px;
+            left:300px;
+            z-index:1;
+        }
+    }
+
+    @media (min-width:999px) {
+        #progress-Container {
+            height:120px;
+            width:340px;
+            position:fixed;
+            left:25px;
+            top:25px;
+            background:rgb(245, 245, 245);
+            border-radius:15px;
+            padding:15px;
+            min-width: 190px;
+        }
+        
+        #search-Top-Container-Filter {
+            width:calc(100vw - 425px);
+            background:transparent;
+            display: flex;
+            height: 55px;
+            position:fixed;
+            z-index: 100;
+            top:25px;
+            left:400px;
+        }
+
+        #Filter-Container {
+            width:95px;
+            height:50px;
+            margin-left: auto;
+            border-radius: 15px;
+            background:rgb(245, 245, 245);
+            display: flex;
+            justify-content: center;
+            align-items:center;
+            font-weight: 900;
+            font-size: 16px;
+            color:rgb(60, 60, 60);
+            transition: .5s;
+        }
+
+        #Filter-Container:hover {
+            cursor: pointer;
+            background:rgb(200, 200, 200);
+            transition: .5s;
+        }
+
+        #search-Top-Container {
+            width:calc(100% - 100px);
+            height:50px;
+            border-radius: 15px;
+            background:rgb(245, 245, 245);
+            position:relative;
+        }
+
+        #search-Bar {
+            width:calc(100% - 25px);
+            height:calc(100% - 20px);
+            background:transparent;
+            border: none;
+            position:absolute;
+            top:50%;
+            left:50%;
+            transform:translate(-50%, -50%);
+            font-size: 15px;
+            color:rgb(60, 60, 60);
+            font-weight: 900;
+            font-family: 'Quicksand', sans-serif;
+        }
+
+        #search-Bar::placeholder {
+            color:rgb(120, 120, 120);
+            font-weight: 900;
+            font-family: 'Quicksand', sans-serif;
+        }
+        
+        #lists {
+            width:calc(100vw - 425px);
+            height:fit-content;
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap:5px;
+            position:absolute;
+            top:90px;
+            top:25px;
+            right:25px;
+            padding-bottom: 25px;
+        }
+
+        #current-Student-Selected {
+            height:calc(100vh - 295px);
+            width:340px;
+            position:fixed;
+            left:25px;
+            top:235px;
+            background:rgb(245, 245, 245);
+            border-radius:15px;
+            padding:15px;
+            min-width: 190px;
+        }
+
+        #add-Student-Button {
+            text-align: center;
+            font-weight: 900;
+            height:20px;
+            width:182.5px;
+            position:fixed;
+            left:212.5px;
+            top:180px;
+            background:rgb(245, 245, 245);
+            border-radius:15px;
+            padding:15px 0px;
+            /* min-width: 190px; */
+            color:rgb(60, 60, 60);
+            transition: .5s;
+        }
+
+        #add-Student-Button:hover {
+            cursor: pointer;
+            background: rgb(200, 200, 200);
+            transition: .5s;
+        }
+
+        #code-Student-Button {
+            text-align: center;
+            font-weight: 900;
+            height:20px;
+            width:182.5px;
+            position:fixed;
+            left:25px;
+            top:180px;
+            background:rgb(245, 245, 245);
+            border-radius:15px;
+            padding:15px 0px;
+            /* min-width: 190px; */
+            color:rgb(60, 60, 60);
+            transition: .5s;
+        }
+
+        #code-Student-Button:hover {
+            cursor: pointer;
+            background: rgb(200, 200, 200);
+            transition: .5s;
+        }
+
+        #top-Hide {
+            width:100%;
+            height:25px;
+            background:linear-gradient(to bottom, white, transparent);
+            position:fixed;
+            top:80px;
+            top:0px;
+            z-index:15;
+        }
+
+        #bottom-Hide {
+            width:100%;
+            height:25px;
+            background:linear-gradient(to top, white, transparent);
+            position:fixed;
+            bottom:0px;
+            z-index:15;
+        }
+
+        #cover {
+            width:calc(100vw - 425px);
+            height:80px;
+            background:white;
+            position:fixed;
+            top:0px;
+            left:400px;
+            z-index:15;
+            display: none;
+        }
+    }
+
+    .student-Container {
+        border-radius:15px;
+        background:rgb(245, 245, 245);
+        width:auto;
+        padding:15px;
+        display:flex;
+        justify-content: space-between;
+        align-items:center;
+        position:relative;
+        cursor: default;
+        transition: .5s;
+    }
+
+    .student-Container:hover {
+        border-radius:15px;
+        background:rgb(200, 200, 200);
+        width:auto;
+        padding:15px;
+        display:flex;
+        justify-content: space-between;
+        align-items:center;
+        position:relative;
+        cursor: pointer;
+        transition: .5s;
+    }
+
+    .student-Info {
+        width:calc(100% - 75px);
+    }
+
+    .student-Name {
+        width:calc(100% - 5px);
+        font-size: 17px;
+        font-weight: 900;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color:rgb(60, 60, 60);
+    }
+
+    .student-Num {
+        width:calc(100%);
+        font-size: 14px;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color:rgb(120, 120, 120);
+    }
+
+    .time {
+        text-align:right;
+        width:fit-content;
+        margin-bottom: 3px;
+        font-size: 15px;
+        margin-right: 15px;
+        font-weight: 900;
+        color:rgb(60, 60, 60);
+        background:rgb(200, 200, 200);
+        padding:2px 7px;
+        border-radius: 15px;
+    }
+    
+    .icon {
+        width:17px;
+        height:17px;
+        fill:rgb(200, 200, 200);
+        /* background:rgb(200, 200, 200); */
+        border-radius: 100%;
+        position:absolute;
+        top:7px;
+        right:7px;
+    }
+
+    .icon.here {
+        width:17px;
+        height:17px;
+        fill:rgb(36, 167, 34);
+        /* background:black; */
+        position:absolute;
+        top:7px;
+        right:7px;
+    }
+
+    ::-webkit-scrollbar {
+        width:0px;
+        height:0px;
+    }
+
+    #info-Container {
+        width:calc(100% - 120px);
+        overflow: hidden;
+        position:relative;
+    }
+
+    #class-Name {
+        width:100vw;
+        font-size: 25px;
+        font-weight:900;
+        font-style:italic;
+        color:rgb(60, 60, 60);
+    }
+
+    #date {
+        width:100vw;
+        font-weight: 800;
+        color:rgb(120, 120, 120);
+    }
+
+    #overflow-Cover {
+        width:100px;
+        height:100%;
+        background:linear-gradient(to right, transparent, rgb(245, 245, 245));
+        position:absolute;
+        top:0px;
+        right:0px;
+    }
+
+    #student-Info-Side-Container {
+        width:100%;
+        height:100%;
+        position:relative;
+        opacity: 0;
+    }
+
+    #no-Student-Selected {
+        font-weight: 900;
+        color:rgb(60, 60, 60);
+        position:absolute;
+        width:100%;
+        top:50%;
+        left:50%;
+        text-align:center;
+        transform:translate(-50%, -50%);
+    }
+
+    #name {
+        font-size: 25px;
+        font-weight: 900;
+        color:rgb(60, 60, 60);
+        text-align: center;
+    }
+
+    #student-Num {
+        margin-top: 2.5px;
+        font-size: 17px;
+        font-weight: 900;
+        color:rgb(120, 120, 120);
+        text-align: center;
+    }
+
+    #date-1 {
+        width:100%;
+        font-weight: 900;
+        color:rgb(120, 120, 120);
+        margin-left: auto;
+        margin-right: auto;
+        text-align: center;
+    }
+
+    #img-Container {
+        width:150px;
+        height:150px;
+        overflow: hidden;
+        border-radius: 100%;
+        position:relative;
+        margin-top: 15px;
+        margin-bottom: 15px;
+        left:50%;
+        transform:translate(-50%);
+    }
+
+    #img {
+        width:100%;
+        height:100%;
+        object-fit: cover;
+    }
+
+    #remove-Student-Button {
+        width:calc(100% - 15px);
+        padding:15px 22px;
+        border-radius: 15px;
+        background:rgb(231, 46, 46);
+        margin-top: 5px;
+        text-align:center;
+        color:rgb(255, 255, 255);
+        font-weight: 900;
+    }
+
+
+    #remove-Student-Button:hover {
+        cursor:pointer;
+    }
+
+    .icon-Selected-Student {
+        width:17px;
+        height:17px;
+        fill:rgb(60, 60, 60);
+        fill:rgb(36, 167, 34);
+        position:absolute;
+        top:17px;
+        right:-12.5px;
+    }
+
+    .icon-Selected-Student .here-Selected-Student {
+        width:17px;
+        height:17px;
+        fill:rgb(36, 167, 34);
+        position:absolute;
+        top:17px;
+        right:-12.5px;
+    }
+
+    .header-Text {
+        font-size: 20px;
+        font-weight: 900;
+        color:rgb(60, 60, 60);
+        text-align: center;
+    }
+
+    #classes-Attended {
+        margin-top: 2.5px;
+        font-size: 17px;
+        font-weight: 900;
+        color:rgb(120, 120, 120);
+        text-align: center;
+    }
+
+    #avg-Sign-In-Time {
+        margin-top: 2.5px;
+        font-size: 17px;
+        font-weight: 900;
+        color:rgb(120, 120, 120);
+        text-align: center;
+        margin-bottom: 5px;
+    }
+
+    #here-Img-Date-Container {
+        width:calc(100% + 30px);
+        background:rgb(245, 245, 245);
+        padding:15px 0px;
+        border-radius: 15px;
+    }
+
+    #name-Student-Num-Container {
+        width:calc(100% + 30px);
+        background:rgb(245, 245, 245);
+        padding:15px 0px;
+        border-radius: 15px;
+        margin-top: 5px;
+    }
+
+    #avg-Time-Days-Attended-Container {
+        width:calc(100% + 30px);
+        background:rgb(245, 245, 245);
+        padding:15px 0px;
+        border-radius: 15px;
+        margin-top: 5px;
+    }
+
+    input, button:focus {
+        outline:none;
+    }
+
+    #hide-Background-Container {
+        width:100vw;
+        height:100vh;
+        position:fixed;
+        top:0px;
+        left:0px;
+        background:rgb(0, 0, 0, 0.25);
+        z-index: -100;
+        opacity: 0;
+        backdrop-filter: blur(.25rem);
+    }
+
+    #add-Student-Info-Container {
+        width:100vw;
+        height:100vh;
+        max-width:500px;
+        border-radius: 15px;
+        max-height:500px;
+        position:absolute;
+        top:50%;
+        left:50%;
+        transform:translate(-50%, -50%);
+        background:white;
+        display: none;
+    }
+
+    #close-Icon {
+        width:22px;
+        height:22px;
+        fill:rgb(60, 60, 60);
+        padding:10px;
+        background:rgb(245, 245, 245);
+        border-radius: 100%;
+        position:absolute;
+        top:10px;
+        right:10px;
+        opacity: 0.75;
+        transition: .5s;
+    }
+
+    #close-Icon:hover {
+        cursor: pointer;
+        opacity: 1;
+        transition: .5s;
+    }
+
+    #actual-Add-Student-Button {
+        width:calc(100% - 100px);
+        padding:20px 10px;
+        /* max-width: 350px; */
+        position:absolute;
+        cursor: default;
+        bottom:25px;
+        left:50%;
+        transform:translate(-50%);
+        padding:20px 10px;
+        border-radius: 15px;
+        border:none;
+            background: rgb(60, 60, 60);
+        font-weight: 900;
+        color:white;
+        font-size: 17px;
+        opacity: 0.5;
+        transition: .5s;
+        text-align:center;
+    }
+
+    #actual-Add-Student-Button.active {
+        width:calc(100% - 100px);
+        padding:20px 10px;
+        /* max-width: 350px; */
+        position:absolute;
+        cursor: default;
+        bottom:25px;
+        left:50%;
+        transform:translate(-50%);
+        padding:20px 10px;
+        border-radius: 15px;
+        border:none;
+        background: rgb(60, 60, 60);
+        font-weight: 900;
+        color:white;
+        font-size: 17px;
+        opacity:1;
+        transition: .5s;
+        text-align:center;
+        font-family: 'Quicksand', sans-serif;
+    }
+
+    #actual-Add-Student-Button.active:hover {
+        cursor: pointer;
+    }
+
+    #student-Name-Input {
+        width:calc(100% - 100px);
+        padding:20px 10px;
+        font-size: 18px;
+        border:none;
+        background:rgb(245, 245, 245);
+        border-radius: 15px;
+        font-weight: 800;
+        color:rgb(60, 60, 60);
+        position: absolute;
+        top:230px;
+        left:50%;
+        transform:translate(-50%);
+        font-family: 'Quicksand', sans-serif;
+    }
+
+    #student-Num-Input {
+        width:calc(100% - 100px);
+        padding:20px 10px;
+        font-size: 18px;
+        border:none;
+        background:rgb(245, 245, 245);
+        border-radius: 15px;
+        font-weight: 800;
+        color:rgb(60, 60, 60);
+        position: absolute;
+        top:300px;
+        left:50%;
+        transform:translate(-50%);
+        font-family: 'Quicksand', sans-serif;
+    }
+
+    #img-Container-2 {
+        width:150px;
+        height:150px;
+        overflow: hidden;
+        border-radius: 100%;
+        position:relative;
+        top:50px;
+        left:50%;
+        transform:translate(-50%);
+    }
+
+    #img-2 {
+        width:100%;
+        height:100%;
+        object-fit: cover;
+    }
+
+    #remove-Student-Container {
+        width:100vw;
+        height:100vh;
+        max-width:500px;
+        border-radius: 15px;
+        max-height:200px;
+        position:absolute;
+        top:50%;
+        left:50%;
+        transform:translate(-50%, -50%);
+        background:white;
+        display: none;
+    }
+
+    #remove-Student-Confirm-Button {
+        width:calc(50% - 47.5px);
+        position:absolute;
+        bottom:25px;
+        right:25px;
+        background:rgb(231, 46, 46);
+        color:white;
+        text-align:center;
+        font-weight: 900;
+        border-radius: 15px;
+        padding:15px 10px;
+    }
+
+    #remove-Student-Confirm-Button:hover {
+        cursor: pointer;
+    }
+
+    #cancel-Student-Confirm-Button {
+        width:calc(50% - 47.5px);
+        position:absolute;
+        background:rgb(245, 245, 245);
+        bottom:25px;
+        left:25px;
+        text-align:center;
+        font-weight: 900;
+        border-radius: 15px;
+        padding:15px 10px;
+    }
+    
+    #cancel-Student-Confirm-Button:hover {
+        cursor: pointer;
+    }
+
+    #confirm-Remove-Text {
+        width:calc(100% - 55px);
+        position: absolute;
+        top:50px;
+        left:50%;
+        transform:translate(-50%);
+        text-align:center;
+        color:rgb(60, 60, 60);
+        font-weight:900;
+    }
+
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+    }
+
+    input, button:focus {
+        outline:none;
+    }
+
+    #qr-Code-Container {
+        width:calc(100vw - 50px);
+        max-width: 650px;
+        height:250px;
+        position:absolute;
+        top:50%;
+        left:50%;
+        transform:translate(-50%, -50%);
+        background:white;
+        border-radius: 15px;
+        display: none;
+    }
+
+    #qrcode {
+        position:absolute;
+        right:25px;
+        top:25px;
+    }
+
+    #todays-Code {
+        width:calc(100% - 250px);
+        height: fit-content;
+        overflow: hidden;
+        position:absolute;
+        left:25px;
+        top:50%;
+        transform: translate(0, -50%);
+    }
+
+    #todays-Code-Text {
+        font-size: 20px;
+        font-weight:900;
+        color:rgb(90, 90, 90);
+    }
+
+    #change-Code {
+        font-size: 20px;
+        font-weight:900;
+        color:rgb(90, 90, 90);
+        background:rgb(245, 245, 245);
+        width:fit-content;
+        height: fit-content;
+        padding:10px 15px;
+        border-radius: 15px;
+        opacity: 0.5;
+        transition: .5s;
+    }
+
+    #change-Code:hover {
+        cursor: pointer;
+        opacity: 1;
+        transition: .5s;
+    }
+
+    #code-Text {
+        margin-top: -20px;
+        font-size: 100px;
+        font-weight:900;
+        color:rgb(60, 60, 60);
+        opacity: 0;
+    }
+
+    #cover-Text {
+        width:100px;
+        height:100%;
+        background:linear-gradient(to right, transparent, white);
+        position:absolute;
+        top:0px;
+        right:0px;
+    }
+
+    #no-Students-In-Class {
+        width:calc(100% - 30px);
+        padding: 30px 30px;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        font-size: 16px;
+        font-weight: 900;
+        color:rgb(60, 60, 60);
+        background:rgb(245, 245, 245);
+        height:250px;
+        border-radius: 15px;
+    }
+</style>
+
+<body>
+    <!-- <div id="search-Top-Container-Filter">
+        <div id="search-Top-Container">
+            <input type="text" id="search-Bar" placeholder="Search by Name" oninput="searchNames(document.getElementById('search-Bar').value)">
+        </div>
+        <div id="Filter-Container">Filter</div>
+    </div> -->
+    <div id="progress-Container">
+        <div id="info-Container">
+            <div id="date">-</div>
+            <div id="class-Name">ICS3U - Mr.Wang</div>
+            <div id="overflow-Cover"></div>
+        </div>
+        <div id="progressbar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="::root{--value:calc((20 / 23) * 100);}">
+            <div id="number-Fraction">0/0</div>
+        </div>
+    </div>
+    <div id="add-Student-Button" onclick="openAddStudent(0)">
+        Add Student
+    </div>
+
+    <div id="code-Student-Button" onclick="openAddStudent(2)">
+        Code
+    </div>
+
+    <div id="current-Student-Selected">
+        <div id="no-Student-Selected">No Student Selected</div>
+        <div id="student-Info-Side-Container">
+            <div id="here-Img-Date-Container">
+                <div id="date-1">-</div>
+
+                <div id="img-Container">
+                    <img id="img" src="Image.jpg">
+                </div>
+
+                <svg id="icon-Selected-Student" class="icon-Selected-Student" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="m424-296 282-282-56-56-226 226-114-114-56 56 170 170Zm56 216q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>
+            </div>
+            
+            <div id="name-Student-Num-Container">
+                <div id="name">Benjamin Burnell</div>
+                <div id="student-Num">342423985</div>
+            </div>
+            
+            <div id="avg-Time-Days-Attended-Container">
+                <!-- <div class="header-Text">Days Attended</div>
+                <div id="classes-Attended" style="margin-bottom:25px;">1</div> -->
+
+                <div class="header-Text">Time Signed In</div>
+                <div id="avg-Sign-In-Time">-</div>
+            </div>
+
+            <div id="remove-Student-Button" onclick="openAddStudent(1)">Remove</div>
+        </div>
+    </div>
+    <div id="lists">
+        <div id="top-Hide"></div>
+        <div id="bottom-Hide"></div>
+        <div id="no-Students-In-Class">No Students In This Class</div>
+        <!-- <div class="student-Container" onclick="openAccount(1)">
+            <div class="student-Info">
+                <div class="student-Name">Benjamin Burnell</div>
+                <div class="student-Num">342423985</div>
+            </div>
+            <div class="time">09:23</div>
+
+            <svg class="icon here" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="m424-296 282-282-56-56-226 226-114-114-56 56 170 170Zm56 216q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>
+        </div> -->
+    </div>
+    <div id="cover"></div>
+    <div id="hide-Background-Container">
+        <div id="add-Student-Info-Container">
+            <!-- <div id="page-Title-Text">Add Student To</div>
+            <div id="class-Name-Add-Student-Info">ICS3U - Mr.Wang</div> -->
+
+            <div id="img-Container-2">
+                <img id="img-2" src="Image.jpg">
+            </div>
+            <svg id="close-Icon" onclick="closeAddStudentContainer()" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>
+            <input type="text" id="student-Name-Input" placeholder="Students Name" oninput="checkValueText()">
+            <input type="number" id="student-Num-Input" placeholder="Student Number" oninput="checkValueText()">
+            <div id="actual-Add-Student-Button" onclick="addStudent(document.getElementById('student-Name-Input').value, document.getElementById('student-Num-Input').value)">Add Student</div>
+        </div>
+        <div id="remove-Student-Container">
+            <svg id="close-Icon" onclick="closeAddStudentContainer()" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>
+            <div id="confirm-Remove-Text"></div>
+            <div id="remove-Student-Confirm-Button" onclick="removeCurrentStudent()">Confirm</div>
+            <div id="cancel-Student-Confirm-Button" onclick="closeAddStudentContainer()">Cancel</div>
+        </div>
+        
+        <div id="qr-Code-Container">  
+            <div id="todays-Code">
+                <div id="todays-Code-Text">Todays Code</div>
+                <div id="code-Text">-</div>
+                <div id="cover-Text"></div>
+                <div id="change-Code" onclick="generateRandom5DigitNumber()">Change Code</div>
+            </div>  
+            <div id="qrcode"></div>
+            <svg id="close-Icon" onclick="closeAddStudentContainer()" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>
+        </div>
+    </div>
+
+</body>
+</html>
